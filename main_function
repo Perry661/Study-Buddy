@@ -1,0 +1,41 @@
+tasks = []  # NEW OBJECT (list)
+
+print('Hello!')
+optInput = input('Wanna input new task? (Y/N)')   # NEW OBJECT (String)
+
+while optInput != 'y' and optInput != 'Y' and optInput != 'n' and optInput != 'N':
+    optInput = input('Please re-enter your option (only Y, N, y, or n): ')
+
+if optInput == 'y' or optInput == 'Y':
+    while True:
+        newTask = input('Input your new task (if end, then input "end"): ')    # NEW OBJECT (String)
+
+        if newTask == 'end':
+            break
+
+        dueDate = input('Input the due date for the task: ')    # NEW OBJECT (String)
+        tasks.append(newTask + '_' + dueDate)
+        # print(tasks)
+# Above: to input the task
+
+
+optDelete = input('Okay, any task(s) wanna delete? (Y/N)')
+
+while optDelete != 'y' and optDelete != 'Y' and optDelete != 'n' and optDelete != 'N':
+    optDelete = input('Please re-enter your option (only Y, N, y, or n): ')
+
+if optDelete == 'y' or optDelete == 'Y':
+    while True:
+        print('By the way, this is your task list:', tasks)
+        deleteTask = input('Input the task you wanna delete (if end, then input "end"): ')    # NEW OBJECT (String)
+
+        if deleteTask == 'end':
+            break
+
+        tasks.remove(deleteTask)
+
+        print(tasks)
+# Above: to delete the task
+
+print('Ok! Remember to do them! ')
+print("Today's task(s): ", tasks)
