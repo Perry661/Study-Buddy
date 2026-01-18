@@ -5,12 +5,18 @@ class removeTask:
 
     def Delete(self):
         while True:
-            print('By the way, this is your task list:', self.taskList)
-            deleteTask = input('Input the task you wanna delete (if end, then input "end"): ')    # NEW OBJECT (String)
+            print('By the way, this is your task list:')
+            for i in self.taskList:
+                print(i["name"], "ID:", i["ID"])
 
-            if deleteTask == 'end':
+            deleteID = int(input('Input the task ID you wanna delete (if end, then input "end"): '))    # NEW OBJECT (String)
+
+            if deleteID == 'end':
                 break
 
-            self.taskList.remove(deleteTask)
+            for j in self.taskList:
+                if j["ID"] == deleteID:
+                    self.taskList.remove(j)
+                    break
 
             print(self.taskList)
