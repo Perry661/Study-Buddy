@@ -1,8 +1,15 @@
 import inputTask
 import delete
+import json
+import os
 
 
-tasks = []  # NEW OBJECT (list)
+if os.path.exists('data.txt'):
+    with open('data.txt', 'r', encoding='utf-8') as f:
+        tasks = json.load(f)
+else:
+    tasks = []
+
 
 print('Hello!')
 optInput = input('Wanna input new task? (Y/N)')   # NEW OBJECT (String)
@@ -19,7 +26,7 @@ if optInput == 'y' or optInput == 'Y':
 optDelete = input('Okay, any task(s) wanna delete? (Y/N)')
 
 while optDelete != 'y' and optDelete != 'Y' and optDelete != 'n' and optDelete != 'N':
-    optDelete = input('Please re-enter your option (only Y, N, y, or n): ')
+    optDelete = input('Please re-enter your option (only Y, N, y, or n): ') # NEW OBJECT (String)
 
 if optDelete == 'y' or optDelete == 'Y':
     DeleteTask = delete.removeTask(tasks)
@@ -27,4 +34,7 @@ if optDelete == 'y' or optDelete == 'Y':
 # Above: to delete the task
 
 print('Ok! Remember to do them! ')
-print("Today's task(s): ", tasks)
+print("Today's task(s): ")
+
+for i in tasks:
+    print(i["name"])
