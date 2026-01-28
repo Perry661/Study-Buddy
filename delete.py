@@ -1,3 +1,6 @@
+import json
+
+
 class removeTask:
 
     def __init__(self, tL):
@@ -6,17 +9,26 @@ class removeTask:
     def Delete(self):
         while True:
             print('By the way, this is your task list:')
+            if not self.taskList:
+                print('(Nothing is here)')
+                break
             for i in self.taskList:
                 print(i["name"], "ID:", i["ID"])
 
-            deleteID = int(input('Input the task ID you wanna delete (if end, then input "end"): '))    # NEW OBJECT (String)
+            deleteInput = input('Input the task ID you wanna delete (if end, then input "end"): ')    # NEW OBJECT (String)
 
-            if deleteID == 'end':
+            if deleteInput == 'end':
                 break
+            try:
+                deleteID = int(deleteInput)
+            except ValueError:
+                print('Please enter a valid task ID or "end".')
+                continue
 
             for j in self.taskList:
                 if j["ID"] == deleteID:
                     self.taskList.remove(j)
                     break
 
-            print(self.taskList)
+            with open('data.txt', 'w', encoding='utf-8') as f:
+                json.dump(self.taskList, f, ensure_ascii=False, indent=2)
