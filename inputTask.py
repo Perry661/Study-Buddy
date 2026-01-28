@@ -8,9 +8,8 @@ class InputTask:
         self.taskList = tL
 
     def Add(self):
-        if os.path.exists('data.txt'):
-            with open('data.txt', 'r', encoding='utf-8') as f:
-                id = max(j["ID"] for j in self.taskList) + 1
+        if self.taskList:
+            id = max(j["ID"] for j in self.taskList) + 1
         else:
             id = 0   # NEW OBJECT (int)
 
