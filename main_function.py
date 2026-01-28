@@ -22,12 +22,10 @@ while True:
         AddTask = inputTask.InputTask(tasks)    # NEW OBJECT (class inputTask.InputTask)
         AddTask.Add()
         opts = '0'
-        continue
     elif opts == '2':
         DeleteTask = delete.removeTask(tasks)   # NEW OBJECT (class delete.removeTask)
         DeleteTask.Delete()
         opts = '0'
-        continue
     elif opts == '3':
         if not tasks:
             print('(Nothing is here)')
@@ -35,15 +33,14 @@ while True:
             for i in tasks:
                 print(i["name"])
         opts = '0'
-        continue
+    elif opts == 'end':
+        break
     else:
         # menu starts
         print('What do you wanna do today?')
         print('1. Add task(s) \n2. Delete task(s) \n3. View task(s)')   # TODO 第三项先空着，回头加日期排序功能的时候别忘了这儿
         opts = input('\nEnter your choice here (enter the order number. If end, enter "end"): ')
         # menu ends
-    if opts == 'end':
-        break
 
 
 print('Ok! Remember to do them! ')
