@@ -8,21 +8,21 @@ class removeTask:
 
     def Delete(self):
         while True:
-            print('By the way, this is your task list:')
+            print('\nBy the way, this is your task list:')
             if not self.taskList:
                 print('(Nothing is here)')
                 break
             for i in self.taskList:
                 print(i["name"], "ID:", i["ID"])
 
-            deleteInput = input('Input the task ID you wanna delete (if end, then input "end"): ')    # NEW OBJECT (String)
+            deleteInput = input('\nEnter the task ID you wanna delete (if end, then enter "end"): ')    # NEW OBJECT (String)
 
             if deleteInput == 'end':
                 break
             try:
                 deleteID = int(deleteInput)
             except ValueError:
-                print('Please enter a valid task ID or "end".')
+                print('\nPlease enter a valid task ID or "end".')
                 continue
 
             for j in self.taskList:
