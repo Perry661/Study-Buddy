@@ -1,5 +1,6 @@
 import json
 import os
+from dueDateFILE import DueDate
 
 
 class InputTask:
@@ -14,7 +15,7 @@ class InputTask:
             id = 0   # NEW OBJECT (int)
 
         while True:
-            print('This is your task list (for now):')
+            print('\nThis is your task list (for now):')
 
             if self.taskList == []:
                 print('(Nothing is here)')
@@ -22,18 +23,34 @@ class InputTask:
                 for i in self.taskList:
                     print(i["name"])
 
-            newTask = input('Input your new task (if end, then input "end"): ')    # NEW OBJECT (String)
+            newTask = input('\nEnter your new task (if end, then enter "end"): ')    # NEW OBJECT (String)
 
             if newTask == 'end':
                 break
+            # Above is to add new task(s).
 
-            dueDate = input('Input the due date for the task: ')    # NEW OBJECT (String)
+            d = DueDate()   # NEW OBJECT (class dueDateFILE.DueDate)
+            dueYear = d.yyyy()  # NEW OBJECT (String)
+            dueMonth = d.mm()   # NEW OBJECT (String)
+            dueDay = d.dd() # NEW OBJECT (String)
+
+            year = int(dueYear) if dueYear != '' else None
+            month = int(dueMonth)
+            day = int(dueDay)
+
+            dueDate = f'{year:04d}-{month:02d}-{day:02d}'   # NEW OBJECT (String)
+            # ddl = d.overDue(year, month, day)  # NEW OBJECT (String)
+            # Above is to add due date.
 
             item = {    # NEW OBJECT (json)
-                "ID" : id,
-                "name" : 'Task: ' + newTask + ', Due date: ' + dueDate,
+                "ID": id,
+                "name": 'Task: ' + newTask + ', Due date: ' + dueDate,
                 "task": newTask, 
-                "dueDate": dueDate
+                "dueDate": dueDate,
+                "dueYear": dueYear,
+                "dueMonth": dueMonth,
+                "dueDay": dueDay,
+                "overDue": ''
                 }
             self.taskList.append(item)
 
