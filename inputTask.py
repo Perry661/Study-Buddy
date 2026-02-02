@@ -23,9 +23,9 @@ class InputTask:
                 for i in self.taskList:
                     print(i["name"])
 
-            newTask = input('\nEnter your new task (if end, then enter "end"): ')    # NEW OBJECT (String)
+            newTask = input('\nEnter your new task (if end, then enter nothing): ')    # NEW OBJECT (String)
 
-            if newTask == 'end':
+            if newTask == '':
                 break
             # Above is to add new task(s).
 
