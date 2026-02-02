@@ -15,14 +15,14 @@ class removeTask:
             for i in self.taskList:
                 print(i["name"], "ID:", i["ID"])
 
-            deleteInput = input('\nEnter the task ID you wanna delete (if end, then enter "end"): ')    # NEW OBJECT (String)
+            deleteInput = input('\nEnter the task ID you wanna delete (if end, then enter nothing): ')    # NEW OBJECT (String)
 
-            if deleteInput == 'end':
+            if deleteInput == '':
                 break
             try:
                 deleteID = int(deleteInput)
             except ValueError:
-                print('\nPlease enter a valid task ID or "end".')
+                print('\nPlease enter a valid task ID or nothing if end.')
                 continue
 
             for j in self.taskList:
