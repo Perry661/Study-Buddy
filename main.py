@@ -58,6 +58,10 @@ while True:
             for j in tasks:
                 j['overDue'] = d.overDue(int(j['dueYear']), int(j['dueMonth']), int(j['dueDay']))
                 print(j["name"] + ', ' + j["overDue"])
+
+            with open('data.txt', 'w', encoding='utf-8') as f:
+                json.dump(tasks, f, ensure_ascii=False, indent=2)
+
         print('\n')
 
         opts = '0'
