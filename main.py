@@ -2,7 +2,6 @@ from inputTask import InputTask
 from delete import removeTask
 from dueDateFILE import DueDate
 from edit import editTask
-from datetime import datetime
 import json
 import os
 
@@ -96,7 +95,7 @@ while True:
         # menu starts
         print('What do you wanna do today?')
         print('1. Add task(s) \n2. Delete task(s) \n3. Edit task(s) \n4. View task(s) \n5. View due date(s)')
-        # TODO 第四和五项先空着，回头加日期排序功能的时候别忘了这儿
+
         opts = input('\nEnter your choice here (enter the order number. If end, enter "end"): ')
         # menu ends
 
