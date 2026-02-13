@@ -20,7 +20,7 @@ class removeTask:
             if deleteInput == '':
                 break
             try:
-                deleteID = int(deleteInput)
+                deleteID = int(deleteInput) # NEW OBJECT(int)
             except ValueError:
                 print('\nPlease enter a valid task ID or nothing if end.')
                 continue
