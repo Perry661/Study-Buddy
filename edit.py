@@ -44,7 +44,7 @@ class editTask:
                     print(t['name'])
 
             editObj = input('Enter the object you want to edit: ')   # NEW OBJECT (String)
-            # TODO 检查obj是否处于任务中
+            # check if the object is one of the options of the task
             if editObj.lower() == 'task' or editObj.lower() == 'due date':
                 return editIDInt, editObj.lower()
             else:
