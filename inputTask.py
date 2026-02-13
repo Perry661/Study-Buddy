@@ -39,7 +39,6 @@ class InputTask:
             day = int(dueDay)
 
             dueDate = f'{year:04d}-{month:02d}-{day:02d}'   # NEW OBJECT (String)
-            # ddl = d.overDue(year, month, day)  # NEW OBJECT (String)
             # Above is to add due date.
 
             item = {    # NEW OBJECT (json)
