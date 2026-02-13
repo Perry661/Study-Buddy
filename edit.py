@@ -1,5 +1,3 @@
-from inputTask import InputTask
-from delete import removeTask
 from dueDateFILE import DueDate
 import json
 import os
