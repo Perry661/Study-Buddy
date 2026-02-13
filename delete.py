@@ -13,7 +13,7 @@ class removeTask:
                 print('(Nothing is here)')
                 break
             for i in self.taskList:
-                print(i["name"], "ID:", i["ID"])
+                print(f'{i["name"]}\t"ID:", {i["ID"]}')
 
             deleteInput = input('\nEnter the task ID you wanna delete (if end, then enter nothing): ')    # NEW OBJECT (String)
 
