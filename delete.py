@@ -1,21 +1,18 @@
-import json
+from save import data_path, save_tasks
 
 
 class Delete:
-    """
-    some comments
-    """
 
     def __init__(self, tL):
-        self.taskList = tL
+        self.task = tL
 
     def deleteTask(self):
         while True:
             print('\nBy the way, this is your task list:')
-            if not self.taskList:
+            if not self.task:
                 print('(Nothing is here)')
                 break
-            for i in self.taskList:
+            for i in self.task:
                 print(f'{i["name"]}\t"ID:", {i["ID"]}')
 
             deleteInput = input('\nEnter the task ID you wanna delete (if end, then enter nothing): ')    # NEW OBJECT (String)
@@ -28,10 +25,9 @@ class Delete:
                 print('\nPlease enter a valid task ID or nothing if end.')
                 continue
 
-            for j in self.taskList:
+            for j in self.task:
                 if j["ID"] == deleteID:
-                    self.taskList.remove(j)
+                    self.task.remove(j)
                     break
 
-            with open('data.txt', 'w', encoding='utf-8') as f:
-                json.dump(self.taskList, f, ensure_ascii=False, indent=2)
+            save_tasks(data_path, self.task)
