@@ -8,7 +8,7 @@ class DueDate:
     def yyyy(self):
         while True:
             print('\nEnter the due year if needed (if no, then enter nothing)')
-            dueYear = input('(By the way, if no due year provides, then will be defaulted as this year): ') # NEW OBJECT (String)
+            dueYear = input('(By the way, if no due year provides, then it will be defaulted as this year): ') # NEW OBJECT (String)
             if dueYear == '':
                 today = date.today()    # NEW OBJECT (int)
                 dueYear = str(today.year)    # NEW OBJECT (String)
