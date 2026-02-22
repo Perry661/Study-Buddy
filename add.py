@@ -3,18 +3,19 @@ import os
 from dueDateFILE import DueDate
 
 
-class InputTask:
+class Add:
 
     def __init__(self, tL):
         self.taskList = tL
 
-    def Add(self):
+    def addTask(self):
         if self.taskList:
             id = max(j["ID"] for j in self.taskList) + 1
         else:
             id = 0   # NEW OBJECT (int)
 
         while True:
+            # ADD NEW TASK(S)
             print('\nThis is your task list (for now):')
 
             if self.taskList == []:
@@ -29,6 +30,7 @@ class InputTask:
                 break
             # Above is to add new task(s).
 
+            # ADD DUE DATE
             d = DueDate()   # NEW OBJECT (class dueDateFILE.DueDate)
             dueYear = d.yyyy()  # NEW OBJECT (String)
             dueMonth = d.mm()   # NEW OBJECT (String)
