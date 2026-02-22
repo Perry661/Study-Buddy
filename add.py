@@ -1,16 +1,15 @@
-import json
-import os
+from save import data_path, save_tasks
 from dueDateFILE import DueDate
 
 
 class Add:
 
     def __init__(self, tL):
-        self.taskList = tL
+        self.task = tL
 
     def addTask(self):
-        if self.taskList:
-            id = max(j["ID"] for j in self.taskList) + 1
+        if self.task:
+            id = max(j["ID"] for j in self.task) + 1
         else:
             id = 0   # NEW OBJECT (int)
 
@@ -18,10 +17,10 @@ class Add:
             # ADD NEW TASK(S)
             print('\nThis is your task list (for now):')
 
-            if self.taskList == []:
+            if self.task == []:
                 print('(Nothing is here)')
             else:
-                for i in self.taskList:
+                for i in self.task:
                     print(i["name"])
 
             newTask = input('\nEnter your new task (if end, then enter nothing): ')    # NEW OBJECT (String)
@@ -53,9 +52,8 @@ class Add:
                 "dueDay": dueDay,
                 "overDue": ''
                 }
-            self.taskList.append(item)
+            self.task.append(item)
 
             id += 1
 
-        with open('data.txt', 'w', encoding='utf-8') as f:
-            json.dump(self.taskList, f, ensure_ascii=False, indent=2)
+        save_tasks(data_path, self.task)
