@@ -1,12 +1,12 @@
 import json
 
 
-class removeTask:
+class Delete:
 
     def __init__(self, tL):
         self.taskList = tL
 
-    def Delete(self):
+    def deleteTask(self):
         while True:
             print('\nBy the way, this is your task list:')
             if not self.taskList:
