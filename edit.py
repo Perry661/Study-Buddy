@@ -2,14 +2,14 @@ from dueDateFILE import DueDate
 import json
 import os
 
-class editTask:
+class Edit:
 
     def __init__(self, t):
         self.task = t
 
     def editCheck(self):
         for i in self.task:
-            print(i["name"] + f'\tID: {i["ID"]}')
+            print(f'{i["name"]}\tID: {i["ID"]}')
 
         if not self.task:
             print('(Nothing is here)')
