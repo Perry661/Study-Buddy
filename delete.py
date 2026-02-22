@@ -2,6 +2,9 @@ import json
 
 
 class Delete:
+    """
+    some comments
+    """
 
     def __init__(self, tL):
         self.taskList = tL
