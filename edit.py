@@ -1,6 +1,5 @@
+from save import data_path, save_tasks
 from dueDateFILE import DueDate
-import json
-import os
 
 class Edit:
 
@@ -60,8 +59,7 @@ class Edit:
                 t["name"] = f'Task: {newName}, Due date: {t["dueDate"]}'
                 break
         
-        with open('data.txt', 'w', encoding='utf-8') as f:
-            json.dump(self.task, f, ensure_ascii=False, indent=2)
+        save_tasks(data_path, self.task)
     
     def editDueDate(self, id):
         d = DueDate()   # NEW OBJECT (class dueDateFILE.DueDate)
@@ -85,5 +83,4 @@ class Edit:
                 t["name"] = f'Task: {t["task"]}, Due date: {newDueDate}'
                 break
         
-        with open('data.txt', 'w', encoding='utf-8') as f:
-            json.dump(self.task, f, ensure_ascii=False, indent=2)
+        save_tasks(data_path, self.task)
