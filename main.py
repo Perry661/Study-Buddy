@@ -1,7 +1,7 @@
-from inputTask import InputTask
-from delete import removeTask
+from add import Add
+from delete import Delete
 from dueDateFILE import DueDate
-from edit import editTask
+from edit import Edit
 import json
 import os
 
@@ -21,15 +21,15 @@ print('\n\nHello!')
 
 while True:
     if opts == '1':
-        AddTask = InputTask(tasks)    # NEW OBJECT (class inputTask.InputTask)
-        AddTask.Add()
+        a = Add(tasks)    # NEW OBJECT (class add.Add)
+        a.addTask()
 
         opts = '0'
         print('\n\n')
 
     elif opts == '2':
-        DeleteTask = removeTask(tasks)   # NEW OBJECT (class delete.removeTask)
-        DeleteTask.Delete()
+        d = Delete(tasks)   # NEW OBJECT (class delete.Delete)
+        d.deleteTask()
 
         opts = '0'
         print('\n\n')
@@ -37,7 +37,7 @@ while True:
     elif opts == '3':
         print('\n')
 
-        e = editTask(tasks) # NEW OBJECT (class edit.editTask)
+        e = Edit(tasks) # NEW OBJECT (class edit.Edit)
 
         while True:
             editID, editT = e.editCheck()   # NEW OBJECT (String)
@@ -79,8 +79,8 @@ while True:
             d = DueDate()   # NEW OBJECT (class dueDateFILE.DueDate)
             for j in tasks:
                 j['overDue'] = d.overDue(int(j['dueYear']), int(j['dueMonth']), int(j['dueDay']))
-                print(j["name"] + ', ' + j["overDue"])
-
+                print(f'{j["name"]}\t{j["overDue"]}')
+                    
             with open('data.txt', 'w', encoding='utf-8') as f:
                 json.dump(tasks, f, ensure_ascii=False, indent=2)
 
@@ -88,7 +88,7 @@ while True:
         opts = '0'
         print('\n\n')
 
-    elif opts == 'end':
+    elif opts == '':
         break
 
     else:
@@ -96,7 +96,7 @@ while True:
         print('What do you wanna do today?')
         print('1. Add task(s) \n2. Delete task(s) \n3. Edit task(s) \n4. View task(s) \n5. View due date(s)')
 
-        opts = input('\nEnter your choice here (enter the order number. If end, enter "end"): ')
+        opts = input('\nEnter your choice here (enter the order number. If end, enter nothing): ')
         # menu ends
 
 tasks.sort(key = lambda x: x["dueDate"])
