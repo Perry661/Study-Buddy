@@ -116,9 +116,7 @@ def main() -> None:
         elif opts == '':
             break
         else:
-            # menu starts
             opts = prompt_menu()
-            # menu ends
 
     save_tasks(data_path, tasks)
     show_summary(tasks)
