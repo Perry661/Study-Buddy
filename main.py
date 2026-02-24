@@ -80,6 +80,7 @@ def prompt_menu() -> str:
 
 def show_summary(tasks: list) -> None:
     tasks.sort(key=lambda x: x["dueDate"])
+    save_tasks(data_path, tasks)
     print('\n')
     print('Remember to do them! ')
     print("Today's task(s): ")
