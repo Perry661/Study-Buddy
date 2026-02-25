@@ -26,8 +26,13 @@ class Delete:
                 continue
 
             for j in self.task:
-                if j["ID"] == deleteID:
+                if j.get("ID") == deleteID:
+                    # check if the id is in the list
                     self.task.remove(j)
                     break
+                else:
+                    # if not, then print a message, adn continue looping.
+                    print('Task ID out of range, please re-enter.')
+                    continue
 
             save_tasks(data_path, self.task)

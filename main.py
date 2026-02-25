@@ -1,10 +1,16 @@
-from save import data_path, save_tasks
+from save import data_path, data_finish_path, save_tasks, save_finish_tasks
 from add import Add
 from delete import Delete
 from dueDateFILE import DueDate
 from edit import Edit
+from finish import Finish
 import os
 import json
+
+
+data_path = 'data.json'
+data_finish_path = 'dataFINISHED.json'
+# or enter your saving file
 
 
 def load_tasks(path: str) -> list:
@@ -47,10 +53,10 @@ def handle_edit(tasks: list) -> None:
 
 
 def handle_view(tasks: list) -> None:
+    print('\n')
     if not tasks:
         print('\n(Nothing is here)')
     else:
-        print('\n')
         num = 0  # NEW OBJECT (int)
         for i in tasks:
             print(i["name"])
@@ -72,9 +78,26 @@ def handle_due_dates(tasks: list, path: str) -> None:
     print('\n\n')
 
 
+def handle_finish_task(tasks: list, taskFINISH: list, path: str, pathFINISH: str):
+    print('\n')
+    if not tasks:
+        print('(Nothing is here)')
+    else:
+        while True:
+            f = Finish(tasks)   # NEW OBJECT (class finish.Finish)
+            finishID = f.finishCheck()  # NEW OBJECT (int | None)
+            if finishID is not None:
+                f.finishTask(finishID, taskFINISH)
+            else:
+                break
+        save_tasks(path, tasks)
+        save_finish_tasks(pathFINISH, taskFINISH)
+        print('\n\n')
+
+
 def prompt_menu() -> str:
     print('What do you wanna do today?')
-    print('1. Add task(s) \n2. Delete task(s) \n3. Edit task(s) \n4. View task(s) \n5. View due date(s)')
+    print('1. Add task(s) \n2. Delete task(s) \n3. Edit task(s) \n4. View task(s) \n5. View due date(s) \n6. Finish task(s)')
     return input('\nEnter your choice here (enter the order number. If end, enter nothing): ')
 
 
@@ -94,6 +117,7 @@ def show_summary(tasks: list) -> None:
 
 def main() -> None:
     tasks = load_tasks(data_path)
+    taskFINISHED = load_tasks(data_finish_path)
 
     opts = '0'  # NEW OBJECT (String)
     print('\n\nHello!')
@@ -113,6 +137,9 @@ def main() -> None:
             opts = '0'
         elif opts == '5':
             handle_due_dates(tasks, data_path)
+            opts = '0'
+        elif opts == '6':
+            handle_finish_task(tasks, taskFINISHED, data_path, data_finish_path)
             opts = '0'
         elif opts == '':
             break

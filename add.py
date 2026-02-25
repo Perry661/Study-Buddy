@@ -50,7 +50,8 @@ class Add:
                 "dueYear": dueYear,
                 "dueMonth": dueMonth,
                 "dueDay": dueDay,
-                "overDue": ''
+                "overDue": '',
+                'finish': ''
                 }
             self.task.append(item)
 

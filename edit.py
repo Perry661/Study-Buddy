@@ -7,12 +7,12 @@ class Edit:
         self.task = t
 
     def editCheck(self):
-        for i in self.task:
-            print(f'{i["name"]}\tID: {i["ID"]}')
-
         if not self.task:
             print('(Nothing is here)')
             return '',''
+        else:
+            for i in self.task:
+                print(f'{i["name"]}\tID: {i["ID"]}')
         
         while True:
             editID = input('Enter the task ID you want to edit (if end, then enter nothing): ')   # NEW OBJECT (String)
