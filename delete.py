@@ -37,3 +37,53 @@ class Delete:
                     # if not, then print a message, adn continue looping.
                     print('Task ID out of range, please re-enter.')
                     continue
+
+
+    def delete_checking(self, trash):
+        today = date.today()    # NEW OBJECT (date)
+        changed = False # NEW OBJECT (Boolean)
+        keptTrash = []  # NEW OBJECT (list)
+
+        for i in trash:
+            remainDays = i.get('delete', 0)   # NEW OBJECT (any)
+            # get "delete" value in the list. If no, then use 0.
+            try:
+                remainingInt = int(remainDays)
+            except (TypeError, ValueError):
+                remainingInt = 0    # NEW OBJECT (int)
+
+            deleteDate = i.get('deleteDate')   # NEW OBJECT (date)
+            if isinstance(deleteDate, str) and deleteDate:
+            # check if deleteDate is str type
+                try:
+                    last_date = date.fromisoformat(deleteDate)    # NEW OBJECT (date)
+                    # change deleteDate to date form
+                except ValueError:
+                    last_date = today
+            elif isinstance(deleteDate, date):
+                last_date = deleteDate
+            else:
+                last_date = today
+
+            days_passed = (today - last_date).days  # NEW OBJECT (int)
+            if days_passed > 0:
+                remainingInt -= days_passed
+                changed = True
+
+            if remainingInt > 0:
+                if i.get('delete') != remainingInt:
+                    i['delete'] = remainingInt
+                    changed = True
+                todayStr = today.isoformat()   # NEW OBJECT (str)
+                # change today to str type
+                if i.get('deleteDate') != todayStr:
+                    i['deleteDate'] = todayStr
+                    changed = True
+                keptTrash.append(i)
+            else:
+                changed = True
+
+        if len(keptTrash) != len(trash):
+            trash[:] = keptTrash
+        
+        return changed

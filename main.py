@@ -41,55 +41,16 @@ def handle_delete(tasks: list, path: str, trash: list, trash_path: str) -> None:
     print('\n\n')
 
 
-def delete_check(trash: list, trash_path: str) -> None:
-    today = date.today()    # NEW OBJECT (date)
-    changed = False # NEW OBJECT (Boolean)
-    keptTrash = []  # NEW OBJECT (list)
-
-    for i in trash:
-        remainDays = i.get('delete', 0)   # NEW OBJECT (any)
-        # get "delete" value in the list. If no, then use 0.
-        try:
-            remainingInt = int(remainDays)
-        except (TypeError, ValueError):
-            remainingInt = 0    # NEW OBJECT (int)
-
-        deleteDate = i.get('deleteDate')   # NEW OBJECT (date)
-        if isinstance(deleteDate, str) and deleteDate:
-        # check if deleteDate is str type
-            try:
-                last_date = date.fromisoformat(deleteDate)    # NEW OBJECT (date)
-                # change deleteDate to date form
-            except ValueError:
-                last_date = today
-        elif isinstance(deleteDate, date):
-            last_date = deleteDate
-        else:
-            last_date = today
-
-        days_passed = (today - last_date).days  # NEW OBJECT (int)
-        if days_passed > 0:
-            remainingInt -= days_passed
-            changed = True
-
-        if remainingInt > 0:
-            if i.get('delete') != remainingInt:
-                i['delete'] = remainingInt
-                changed = True
-            todayStr = today.isoformat()   # NEW OBJECT (str)
-            # change today to str type
-            if i.get('deleteDate') != todayStr:
-                i['deleteDate'] = todayStr
-                changed = True
-            keptTrash.append(i)
-        else:
-            changed = True
-
-    if len(keptTrash) != len(trash):
-        trash[:] = keptTrash
-
+def delete_check(tasks: list, trash: list, trash_path: str) -> None:
+    d = Delete(tasks)  # NEW OBJECT (class delete.Delete)
+    changed = d.delete_checking(trash)
     if changed:
         save_tasks(trash_path, trash)
+
+
+def handle_put_back(tasks, data_path, trash, trash_path):
+    # TODO creat class 
+    pass
 
 
 def handle_edit(tasks: list) -> None:
@@ -160,7 +121,7 @@ def handle_finish_task(tasks: list, path: str, taskFINISH: list, pathFINISH: str
 
 def prompt_menu() -> str:
     print('What do you wanna do today?')
-    print('1. Add task(s) \n2. Delete task(s) \n3. Edit task(s) \n4. View task(s) \n5. View due date(s) \n6. Finish task(s)')
+    print('1. Add task(s) \n2. Edit task(s) \n3. Delete task(s) \n4. Put back deleted task(s) \n5. View task(s) \n6. View due date(s) \n7. Finish task(s)')
     return input('\nEnter your choice here (enter the order number. If end, enter nothing): ')
 
 
@@ -183,7 +144,7 @@ def main() -> None:
     taskFINISHED = load_tasks(data_finish_path) # NEW OBJECT (list)
     trash = load_tasks(trash_path)  # NEW OBJECT (list)
 
-    delete_check(trash, trash_path)
+    delete_check(tasks, trash, trash_path)
 
     opts = '0'  # NEW OBJECT (String)
     print('\n\nHello!')
@@ -193,18 +154,23 @@ def main() -> None:
             handle_add(tasks, data_path)
             opts = '0'
         elif opts == '2':
-            handle_delete(tasks, data_path, trash, trash_path)
-            opts = '0'
-        elif opts == '3':
             handle_edit(tasks)
             opts = '0'
+        elif opts == '3':
+            handle_delete(tasks, data_path, trash, trash_path)
+            opts = '0'
         elif opts == '4':
-            handle_view(tasks)
+            # TODO reverse deleted task(s)
+            handle_put_back(tasks, data_path, trash, trash_path)
+            print('此功能暂未开放')
             opts = '0'
         elif opts == '5':
-            handle_due_dates(tasks, data_path)
+            handle_view(tasks)
             opts = '0'
         elif opts == '6':
+            handle_due_dates(tasks, data_path)
+            opts = '0'
+        elif opts == '7':
             handle_finish_task(tasks, data_path, taskFINISHED, data_finish_path)
             opts = '0'
         elif opts == '':
