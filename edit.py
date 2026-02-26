@@ -75,12 +75,10 @@ class Edit:
 
         # Add the new due date of the task with a same ID and name.
         for t in self.task:
-            if t.get("ID") == self.task:
+            if t.get("ID") == id:
                 t["dueYear"] = newDY
                 t["dueMonth"] = newDM
                 t["dueDay"] = newDD
                 t["dueDate"] = newDueDate
                 t["name"] = f'Task: {t["task"]}, Due date: {newDueDate}'
                 break
-        
-        save_tasks(data_path, self.task)

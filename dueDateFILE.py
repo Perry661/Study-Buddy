@@ -14,6 +14,7 @@ class DueDate:
                 dueYear = str(today.year)    # NEW OBJECT (String)
                 break
             try:
+                int(dueYear)
                 break
             except ValueError:
                 print('\nError, enter the due year as a number or enter nothing.')

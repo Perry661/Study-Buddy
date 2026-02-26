@@ -1,4 +1,4 @@
-from save import data_path, save_tasks
+from datetime import date
 
 
 class Delete:
@@ -6,7 +6,7 @@ class Delete:
     def __init__(self, tL):
         self.task = tL
 
-    def deleteTask(self):
+    def deleteTask(self, trash, trash_path):
         while True:
             print('\nBy the way, this is your task list:')
             if not self.task:
@@ -26,13 +26,14 @@ class Delete:
                 continue
 
             for j in self.task:
+                # check if the id is in the list
                 if j.get("ID") == deleteID:
-                    # check if the id is in the list
+                    j['delete'] = 30
+                    j['deleteDate'] = date.today().isoformat()
+                    trash.append(j)
                     self.task.remove(j)
                     break
                 else:
                     # if not, then print a message, adn continue looping.
                     print('Task ID out of range, please re-enter.')
                     continue
-
-            save_tasks(data_path, self.task)

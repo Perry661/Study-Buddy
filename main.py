@@ -1,4 +1,4 @@
-from save import data_path, data_finish_path, save_tasks, save_finish_tasks
+from save import data_path, data_finish_path, save_tasks
 from add import Add
 from delete import Delete
 from dueDateFILE import DueDate
@@ -6,10 +6,12 @@ from edit import Edit
 from finish import Finish
 import os
 import json
+from datetime import date
 
 
 data_path = 'data.json'
 data_finish_path = 'dataFINISHED.json'
+trash_path = 'trash.json'
 # or enter your saving file
 
 
@@ -22,20 +24,77 @@ def load_tasks(path: str) -> list:
                 return []
     return []  # NEW OBJECT (list)
 
-def handle_add(tasks: list) -> None:
+def handle_add(tasks: list, path: str) -> None:
+    tasks.sort(key=lambda x: x["dueDate"])
     a = Add(tasks)  # NEW OBJECT (class add.Add)
     a.addTask()
+    save_tasks(path, tasks)
     print('\n\n')
 
 
-def handle_delete(tasks: list) -> None:
+def handle_delete(tasks: list, path: str, trash: list, trash_path: str) -> None:
+    tasks.sort(key=lambda x: x["dueDate"])
     d = Delete(tasks)  # NEW OBJECT (class delete.Delete)
-    d.deleteTask()
+    d.deleteTask(trash, trash_path)
+    save_tasks(path, tasks)
+    save_tasks(trash_path, trash)
     print('\n\n')
+
+
+def delete_check(trash: list, trash_path: str) -> None:
+    today = date.today()    # NEW OBJECT (date)
+    changed = False # NEW OBJECT (Boolean)
+    keptTrash = []  # NEW OBJECT (list)
+
+    for i in trash:
+        remainDays = i.get('delete', 0)   # NEW OBJECT (any)
+        # get "delete" value in the list. If no, then use 0.
+        try:
+            remainingInt = int(remainDays)
+        except (TypeError, ValueError):
+            remainingInt = 0    # NEW OBJECT (int)
+
+        deleteDate = i.get('deleteDate')   # NEW OBJECT (date)
+        if isinstance(deleteDate, str) and deleteDate:
+        # check if deleteDate is str type
+            try:
+                last_date = date.fromisoformat(deleteDate)    # NEW OBJECT (date)
+                # change deleteDate to date form
+            except ValueError:
+                last_date = today
+        elif isinstance(deleteDate, date):
+            last_date = deleteDate
+        else:
+            last_date = today
+
+        days_passed = (today - last_date).days  # NEW OBJECT (int)
+        if days_passed > 0:
+            remainingInt -= days_passed
+            changed = True
+
+        if remainingInt > 0:
+            if i.get('delete') != remainingInt:
+                i['delete'] = remainingInt
+                changed = True
+            todayStr = today.isoformat()   # NEW OBJECT (str)
+            # change today to str type
+            if i.get('deleteDate') != todayStr:
+                i['deleteDate'] = todayStr
+                changed = True
+            keptTrash.append(i)
+        else:
+            changed = True
+
+    if len(keptTrash) != len(trash):
+        trash[:] = keptTrash
+
+    if changed:
+        save_tasks(trash_path, trash)
 
 
 def handle_edit(tasks: list) -> None:
     print('\n')
+    tasks.sort(key=lambda x: x["dueDate"])
     e = Edit(tasks)  # NEW OBJECT (class edit.Edit)
 
     while True:
@@ -49,11 +108,14 @@ def handle_edit(tasks: list) -> None:
         else:
             e.editDueDate(editID)
 
+    save_tasks(data_path, tasks)
+
     print('\n\n')
 
 
 def handle_view(tasks: list) -> None:
     print('\n')
+    tasks.sort(key=lambda x: x["dueDate"])
     if not tasks:
         print('\n(Nothing is here)')
     else:
@@ -67,6 +129,7 @@ def handle_view(tasks: list) -> None:
 
 def handle_due_dates(tasks: list, path: str) -> None:
     print('\n')
+    tasks.sort(key=lambda x: x["dueDate"])
     if not tasks:
         print('(Nothing is here)')
     else:
@@ -78,7 +141,7 @@ def handle_due_dates(tasks: list, path: str) -> None:
     print('\n\n')
 
 
-def handle_finish_task(tasks: list, taskFINISH: list, path: str, pathFINISH: str):
+def handle_finish_task(tasks: list, path: str, taskFINISH: list, pathFINISH: str) -> None:
     print('\n')
     if not tasks:
         print('(Nothing is here)')
@@ -91,7 +154,7 @@ def handle_finish_task(tasks: list, taskFINISH: list, path: str, pathFINISH: str
             else:
                 break
         save_tasks(path, tasks)
-        save_finish_tasks(pathFINISH, taskFINISH)
+        save_tasks(pathFINISH, taskFINISH)
         print('\n\n')
 
 
@@ -116,18 +179,21 @@ def show_summary(tasks: list) -> None:
 
 
 def main() -> None:
-    tasks = load_tasks(data_path)
-    taskFINISHED = load_tasks(data_finish_path)
+    tasks = load_tasks(data_path)   # NEW OBJECT (list)
+    taskFINISHED = load_tasks(data_finish_path) # NEW OBJECT (list)
+    trash = load_tasks(trash_path)  # NEW OBJECT (list)
+
+    delete_check(trash, trash_path)
 
     opts = '0'  # NEW OBJECT (String)
     print('\n\nHello!')
 
     while True:
         if opts == '1':
-            handle_add(tasks)
+            handle_add(tasks, data_path)
             opts = '0'
         elif opts == '2':
-            handle_delete(tasks)
+            handle_delete(tasks, data_path, trash, trash_path)
             opts = '0'
         elif opts == '3':
             handle_edit(tasks)
@@ -139,7 +205,7 @@ def main() -> None:
             handle_due_dates(tasks, data_path)
             opts = '0'
         elif opts == '6':
-            handle_finish_task(tasks, taskFINISHED, data_path, data_finish_path)
+            handle_finish_task(tasks, data_path, taskFINISHED, data_finish_path)
             opts = '0'
         elif opts == '':
             break

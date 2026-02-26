@@ -1,4 +1,3 @@
-from save import data_path, save_tasks
 from dueDateFILE import DueDate
 
 
@@ -44,17 +43,17 @@ class Add:
 
             item = {    # NEW OBJECT (json)
                 "ID": id,
-                "name": 'Task: ' + newTask + ', Due date: ' + dueDate,
+                "name": f"Task: {newTask}, Due date: {dueDate}",
                 "task": newTask, 
                 "dueDate": dueDate,
                 "dueYear": dueYear,
                 "dueMonth": dueMonth,
                 "dueDay": dueDay,
-                "overDue": '',
-                'finish': ''
+                "overDue": "",
+                "finish": "",
+                "delete": "",
+                "deleteDate": ""
                 }
             self.task.append(item)
 
             id += 1
-
-        save_tasks(data_path, self.task)
