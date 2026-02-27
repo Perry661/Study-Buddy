@@ -3,10 +3,11 @@ from datetime import date
 
 class Delete:
 
-    def __init__(self, tL):
+    def __init__(self, tL, trash):
         self.task = tL
+        self.trash = trash
 
-    def deleteTask(self, trash, trash_path):
+    def deleteTask(self):
         while True:
             print('\nBy the way, this is your task list:')
             if not self.task:
@@ -30,21 +31,20 @@ class Delete:
                 if j.get("ID") == deleteID:
                     j['delete'] = 30
                     j['deleteDate'] = date.today().isoformat()
-                    trash.append(j)
+                    self.trash.append(j)
                     self.task.remove(j)
                     break
                 else:
                     # if not, then print a message, adn continue looping.
                     print('Task ID out of range, please re-enter.')
-                    continue
 
 
-    def delete_checking(self, trash):
+    def deleteChecking(self):
         today = date.today()    # NEW OBJECT (date)
         changed = False # NEW OBJECT (Boolean)
         keptTrash = []  # NEW OBJECT (list)
 
-        for i in trash:
+        for i in self.trash:
             remainDays = i.get('delete', 0)   # NEW OBJECT (any)
             # get "delete" value in the list. If no, then use 0.
             try:
@@ -83,7 +83,35 @@ class Delete:
             else:
                 changed = True
 
-        if len(keptTrash) != len(trash):
-            trash[:] = keptTrash
+        if len(keptTrash) != len(self.trash):
+            self.trash[:] = keptTrash
         
         return changed
+    
+    def putBack(self):
+        while True:
+            print('\nBy the way, this is your task list:')
+            if not self.trash:
+                print('(Nothing is here)')
+                break
+            for i in self.trash:
+                print(f'{i["name"]}\t"ID:", {i["ID"]}')
+
+            putBackID = input('\nEnter the task ID you wanna put back (if end, then enter nothing): ')    # NEW OBJECT (String)
+
+            if putBackID == '':
+                break
+            try:
+                IDint = int(putBackID) # NEW OBJECT(int)
+            except ValueError:
+                print('\nPlease enter a valid task ID or nothing if end.')
+                continue
+
+            for t in self.trash:
+                if t['ID'] == IDint:
+                    self.task.append(t)
+                    self.trash.remove(t)
+                    break
+                else:
+                    # if not, then print a message, adn continue looping.
+                    print('Task ID out of range, please re-enter.')

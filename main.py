@@ -65,7 +65,7 @@ def handle_put_back(tasks: list, path: str, trash: list, trash_path: str):
 def handle_edit(tasks: list, path: str) -> None:
     print('\n')
     tasks.sort(key=lambda x: x["dueDate"])
-    e = Edit(tasks)  # NEW OBJECT (class edit.Edit)
+    e = Edit(tasks, path)  # NEW OBJECT (class edit.Edit)
 
     while True:
         editID, editT = e.editCheck()  # NEW OBJECT (String)

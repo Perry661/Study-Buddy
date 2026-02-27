@@ -1,10 +1,11 @@
-from save import data_path, save_tasks
+from save import save_tasks
 from dueDateFILE import DueDate
 
 class Edit:
 
-    def __init__(self, t):
+    def __init__(self, t, path):
         self.task = t
+        self.path = path
 
     def editCheck(self):
         if not self.task:
@@ -59,7 +60,7 @@ class Edit:
                 t["name"] = f'Task: {newName}, Due date: {t["dueDate"]}'
                 break
         
-        save_tasks(data_path, self.task)
+        save_tasks(self.path, self.task)
     
     def editDueDate(self, id):
         d = DueDate()   # NEW OBJECT (class dueDateFILE.DueDate)
