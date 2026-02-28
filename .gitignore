@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+
+data.json
+dataFINISHED.json
+trash.json
