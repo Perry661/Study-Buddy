@@ -39,6 +39,7 @@ def delete_menu() -> str:
         print('1. Delete \n2. Put back \n3. View having tasks \n4. View deleted tasks')
         opt = input('Enter your option (if end, enter nothing): ')
         if opt == '1' or opt == '2' or opt == '3' or opt == '4' or opt == '':
+            print('\n')
             return opt
         else:
             print('Option out of range, please re-enter.')
@@ -62,6 +63,15 @@ def handle_put_back(tasks: list, path: str, trash: list, trash_path: str):
     print('\n\n')
 
 
+def handle_view_deleted(tasks: list) -> None:
+    tasks.sort(key=lambda x: x["dueDate"])
+    if not tasks:
+        print('\n(Nothing is here)')
+    else:
+        for i in tasks:
+            print(f'{i["name"]}\t{i["delete"]} day(s) left to delete')
+
+
 def handle_edit(tasks: list, path: str) -> None:
     print('\n')
     tasks.sort(key=lambda x: x["dueDate"])
@@ -82,7 +92,6 @@ def handle_edit(tasks: list, path: str) -> None:
 
 
 def handle_view(tasks: list) -> int:
-    print('\n')
     tasks.sort(key=lambda x: x["dueDate"])
     num = 0  # NEW OBJECT (int)
     if not tasks:
@@ -177,11 +186,12 @@ def main() -> None:
                 elif delete_opt == '3':
                     handle_view(tasks)
                 elif delete_opt == '4':
-                    handle_view(trash) 
+                    handle_view_deleted(trash)
                 else:
                     break
             opts = '0'
         elif opts == '4':
+            print('\n')
             num = handle_view(tasks)    # NEW OBJECT (int)
             print(f'\nYou have {num} task(s) left.')
             print('\n\n')
