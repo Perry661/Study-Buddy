@@ -3,12 +3,15 @@ from dueDateFILE import DueDate
 
 class Add:
 
-    def __init__(self, tL):
+    def __init__(self, tL, trash):
         self.task = tL
+        self.trash = trash
 
     def addTask(self):
-        if self.task:
-            id = max(j["ID"] for j in self.task) + 1
+        if self.task and self.trash:
+            id_task = max(j["ID"] for j in self.task) + 1
+            id_trash = max(j["ID"] for j in self.trash) + 1
+            id = max(id_task, id_trash)
         else:
             id = 0   # NEW OBJECT (int)
 

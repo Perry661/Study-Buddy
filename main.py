@@ -17,9 +17,9 @@ def load_tasks(path: str) -> list:
                 return []
     return []  # NEW OBJECT (list)
 
-def handle_add(tasks: list, path: str) -> None:
+def handle_add(tasks: list, path: str, trash: list) -> None:
     tasks.sort(key=lambda x: x["dueDate"])
-    a = Add(tasks)  # NEW OBJECT (class add.Add)
+    a = Add(tasks, trash)  # NEW OBJECT (class add.Add)
     a.addTask()
     save_tasks(path, tasks)
     print('\n\n')
@@ -171,7 +171,7 @@ def main() -> None:
 
     while True:
         if opts == '1':
-            handle_add(tasks, data_path)
+            handle_add(tasks, data_path, trash)
             opts = '0'
         elif opts == '2':
             handle_edit(tasks, data_path)
