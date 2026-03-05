@@ -1,299 +1,335 @@
 import tkinter as tk
-from tkinter import messagebox, simpledialog
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
-import re
 
-from ui_data import TaskStore, build_overdue_text, parse_due_date
+from ADD import AddTaskMixin
+from DELETE import DeleteTaskMixin
+from FINISH import FinishTaskMixin
+from more import MoreMenuMixin
+from ui_data import TaskStore, parse_due_date
 
 
-class StudyBuddyUI(tk.Tk):
+class StudyBuddyUI(AddTaskMixin, DeleteTaskMixin, FinishTaskMixin, MoreMenuMixin, tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("Study Buddy")
-        self.geometry("1200x760")
-        self.minsize(1000, 620)
-        self.configure(bg="#ececec")
+        self.geometry("838x781")
+        self.minsize(644, 600)
+        self.configure(bg="#b9f0da")
 
         self.store = TaskStore()
-        self._build_widgets()
+        self.active_items: list[dict] = []
+        self.selected_task_id: Optional[int] = None
+
+        self._build_ui()
         self.reload_from_disk()
+        self._tick_clock()
 
-    def _build_widgets(self) -> None:
-        top = tk.Frame(self, bg="#ececec", padx=12, pady=10)
-        top.pack(fill=tk.X)
+    def _build_ui(self) -> None:
+        self.bg_canvas = tk.Canvas(self, highlightthickness=0, bd=0, bg="#b9f0da")
+        self.bg_canvas.place(relx=0, rely=0, relwidth=1, relheight=1)
+        self.bind("<Configure>", self._on_resize)
+        self._draw_background()
 
-        tk.Label(top, text="Task:", bg="#ececec", fg="black").grid(row=0, column=0, sticky="w")
-        self.task_entry = tk.Entry(top, width=60)
-        self.task_entry.grid(row=0, column=1, sticky="ew", padx=(6, 10))
-
-        tk.Label(top, text="Due (YYYY-MM-DD):", bg="#ececec", fg="black").grid(row=0, column=2, sticky="w")
-        self.due_entry = tk.Entry(top, width=14)
-        self.due_entry.grid(row=0, column=3, sticky="w", padx=(6, 0))
-        self.due_entry.insert(0, date.today().isoformat())
-        top.grid_columnconfigure(1, weight=1)
-
-        btn = tk.Frame(self, bg="#ececec", padx=12, pady=0)
-        btn.pack(fill=tk.X, pady=(0, 8))
-        tk.Button(btn, text="Add", width=12, command=self.add_task).pack(side=tk.LEFT, padx=4)
-        tk.Button(btn, text="Edit Selected", width=12, command=self.edit_by_id).pack(side=tk.LEFT, padx=4)
-        tk.Button(btn, text="Finish Selected", width=12, command=self.finish_by_id).pack(side=tk.LEFT, padx=4)
-        tk.Button(btn, text="Delete Selected", width=12, command=self.delete_by_id).pack(side=tk.LEFT, padx=4)
-        tk.Button(btn, text="Restore Selected", width=12, command=self.restore_by_id).pack(side=tk.LEFT, padx=4)
-        tk.Button(btn, text="Reload", width=12, command=self.reload_from_disk).pack(side=tk.LEFT, padx=4)
-
-        content = tk.Frame(self, bg="#ececec", padx=12, pady=8)
-        content.pack(fill=tk.BOTH, expand=True)
-        content.columnconfigure(0, weight=1)
-        content.columnconfigure(1, weight=1)
-        content.columnconfigure(2, weight=1)
-        content.rowconfigure(1, weight=1)
-
-        tk.Label(content, text="Active", bg="#ececec", fg="black").grid(row=0, column=0, sticky="w")
-        tk.Label(content, text="Finished", bg="#ececec", fg="black").grid(row=0, column=1, sticky="w")
-        tk.Label(content, text="Trash", bg="#ececec", fg="black").grid(row=0, column=2, sticky="w")
-
-        active_wrap, self.active_list = self._build_list_panel(content)
-        finished_wrap, self.finished_list = self._build_list_panel(content)
-        trash_wrap, self.trash_list = self._build_list_panel(content)
-        active_wrap.grid(row=1, column=0, sticky="nsew", padx=(0, 6))
-        finished_wrap.grid(row=1, column=1, sticky="nsew", padx=6)
-        trash_wrap.grid(row=1, column=2, sticky="nsew", padx=(6, 0))
-        self.active_list.bind("<Double-Button-1>", lambda _event: self.edit_by_id())
-        self.trash_list.bind("<Double-Button-1>", lambda _event: self.restore_by_id())
-
-        self.active_ids: list[int] = []
-        self.finished_ids: list[int] = []
-        self.trash_ids: list[int] = []
-
-        self.status_var = tk.StringVar(value="Ready")
-        tk.Label(self, textvariable=self.status_var, bg="#ececec", anchor="w", padx=12, pady=8).pack(fill=tk.X)
-
-    def _build_list_panel(self, parent: tk.Frame) -> tuple[tk.Frame, tk.Listbox]:
-        wrapper = tk.Frame(parent, bg="#ececec")
-        wrapper.grid_rowconfigure(0, weight=1)
-        wrapper.grid_columnconfigure(0, weight=1)
-        listbox = tk.Listbox(
-            wrapper,
-            bg="white",
+        self.time_label = tk.Label(
+            self,
+            text="",
             fg="black",
-            relief=tk.SOLID,
-            borderwidth=1,
-            selectmode=tk.SINGLE,
-            activestyle="none",
-            exportselection=False,
-            width=40,
-            height=20,
+            bg="#b9f0da",
+            font=("Times New Roman", 24, "bold"),
+            justify="left",
         )
-        scrollbar = tk.Scrollbar(wrapper, orient=tk.VERTICAL, command=listbox.yview)
-        listbox.configure(yscrollcommand=scrollbar.set)
-        listbox.grid(row=0, column=0, sticky="nsew")
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        return wrapper, listbox
+        self.time_label.place(relx=0.62, rely=0.06, anchor="nw")
+        self.more_btn = self._make_circle_button(self, "...", self.open_more_menu, size=78, text_size=26)
+        self.more_btn.place(relx=0.05, rely=0.07, anchor="center")
 
-    def _render_panel(self, widget: tk.Listbox, rows: list[str]) -> None:
-        widget.delete(0, tk.END)
-        if not rows:
-            widget.insert(tk.END, "(empty)")
-        else:
-            for row in rows:
-                widget.insert(tk.END, row)
+        self.list_border = tk.Frame(self, bg="black")
+        self.list_border.place(relx=0.10, rely=0.29, relwidth=0.78, relheight=0.34)
+
+        self.list_holder = tk.Frame(self.list_border, bg="#f4f4f4")
+        self.list_holder.place(relx=0.005, rely=0.007, relwidth=0.99, relheight=0.986)
+
+        self.list_canvas = tk.Canvas(self.list_holder, bg="#f4f4f4", highlightthickness=0, bd=0)
+        self.list_scroll = tk.Scrollbar(self.list_holder, orient="vertical", command=self.list_canvas.yview)
+        self.list_canvas.configure(yscrollcommand=self.list_scroll.set)
+        self.list_canvas.pack(side="left", fill="both", expand=True)
+        self.list_scroll.pack(side="right", fill="y")
+
+        self.task_container = tk.Frame(self.list_canvas, bg="#f4f4f4")
+        self.task_window = self.list_canvas.create_window((0, 0), window=self.task_container, anchor="nw")
+        self.task_container.bind("<Configure>", self._on_task_container_configure)
+        self.list_canvas.bind("<Configure>", self._on_list_canvas_configure)
+        self.list_canvas.bind("<MouseWheel>", self._on_mousewheel)
+
+        self.bottom_bar = tk.Frame(self, bg="#b9f0da")
+        self.bottom_bar.place(relx=0.03, rely=0.74, relwidth=0.94, relheight=0.22)
+
+        self.trash_btn = self._make_circle_button(self.bottom_bar, "BIN", self.open_trash_window)
+        self.add_btn = self._make_circle_button(self.bottom_bar, "+", self.open_add_window)
+        self.finish_btn = self._make_circle_button(self.bottom_bar, "DONE", self.finish_selected)
+
+        self.trash_btn.place(relx=0.12, rely=0.32, anchor="center")
+        self.add_btn.place(relx=0.50, rely=0.32, anchor="center")
+        self.finish_btn.place(relx=0.88, rely=0.32, anchor="center")
+
+    def _draw_background(self) -> None:
+        self.bg_canvas.delete("all")
+        w = max(self.winfo_width(), 980)
+        h = max(self.winfo_height(), 680)
+
+        self.bg_canvas.create_rectangle(0, 0, w, h, fill="#aeeacf", outline="")
+
+        self._draw_cloud(120, 110, 0.95)
+        self._draw_cloud(w - 220, 110, 0.95)
+        self._draw_cloud(330, 250, 0.85)
+        self._draw_cloud(w - 140, 210, 0.75)
+
+        self.bg_canvas.create_polygon(
+            0,
+            h * 0.56,
+            w,
+            h * 0.49,
+            w,
+            h * 0.72,
+            0,
+            h * 0.61,
+            fill="#b8d98a",
+            outline="",
+        )
+        self.bg_canvas.create_polygon(
+            0,
+            h * 0.61,
+            w,
+            h * 0.75,
+            w,
+            h * 0.86,
+            0,
+            h * 0.74,
+            fill="#80bb62",
+            outline="",
+        )
+        self.bg_canvas.create_polygon(
+            0,
+            h * 0.74,
+            w * 0.78,
+            h * 0.79,
+            w,
+            h * 0.83,
+            w,
+            h,
+            0,
+            h,
+            fill="#5ba34d",
+            outline="",
+        )
+        self.bg_canvas.create_polygon(
+            0,
+            h,
+            w,
+            h,
+            w,
+            h * 0.83,
+            fill="#3f8241",
+            outline="",
+        )
+
+        self._draw_scribble(w * 0.18, h * 0.70)
+        self._draw_scribble(w * 0.78, h * 0.73)
+        self._draw_scribble(w * 0.62, h * 0.81)
+        self._draw_tiny_tree(w * 0.50, h * 0.75)
+        self._draw_tiny_tree(w * 0.72, h * 0.65)
+
+    def _draw_cloud(self, x: float, y: float, scale: float) -> None:
+        c = "#f1f1f1"
+        self.bg_canvas.create_oval(x - 95 * scale, y - 35 * scale, x + 40 * scale, y + 35 * scale, fill=c, outline="")
+        self.bg_canvas.create_oval(x - 20 * scale, y - 30 * scale, x + 80 * scale, y + 30 * scale, fill=c, outline="")
+        self.bg_canvas.create_oval(x + 45 * scale, y - 18 * scale, x + 120 * scale, y + 30 * scale, fill=c, outline="")
+        self.bg_canvas.create_rectangle(x - 100 * scale, y, x + 120 * scale, y + 22 * scale, fill=c, outline="")
+
+    def _draw_scribble(self, x: float, y: float) -> None:
+        points = [
+            x - 40,
+            y,
+            x - 25,
+            y - 10,
+            x - 8,
+            y + 4,
+            x + 8,
+            y - 9,
+            x + 24,
+            y + 3,
+            x + 40,
+            y - 6,
+        ]
+        self.bg_canvas.create_line(points, fill="black", width=3, smooth=True)
+
+    def _draw_tiny_tree(self, x: float, y: float) -> None:
+        self.bg_canvas.create_line(x, y, x, y + 55, fill="black", width=3)
+        self.bg_canvas.create_oval(x - 24, y - 22, x + 20, y + 14, outline="black", width=3)
+        self.bg_canvas.create_oval(x - 10, y - 30, x + 30, y + 10, outline="black", width=3)
+
+    def _on_resize(self, _event: tk.Event) -> None:
+        self._draw_background()
+
+    def _on_task_container_configure(self, _event: tk.Event) -> None:
+        self.list_canvas.configure(scrollregion=self.list_canvas.bbox("all"))
+
+    def _on_list_canvas_configure(self, event: tk.Event) -> None:
+        self.list_canvas.itemconfigure(self.task_window, width=event.width)
+
+    def _on_mousewheel(self, event: tk.Event) -> None:
+        self.list_canvas.yview_scroll(int(-event.delta / 120), "units")
+
+    def _make_circle_button(self, parent: tk.Widget, text: str, command, size: int = 120, text_size: int = 34) -> tk.Canvas:
+        c = tk.Canvas(parent, width=size, height=size, highlightthickness=0, bd=0, bg="#b9f0da")
+        margin = max(6, int(size * 0.07))
+        c.create_oval(margin, margin, size - margin, size - margin, width=3, outline="black", fill="#f8f8f8")
+        c.create_text(size / 2, size / 2, text=text, fill="black", font=("Times New Roman", text_size, "bold"))
+        c.bind("<Button-1>", lambda _e: command())
+        return c
+
+    def _tick_clock(self) -> None:
+        now = datetime.now()
+        self.time_label.configure(text=f"{now.strftime('%Y-%m-%d')}\n{now.strftime('%H:%M')}")
+        self.after(1000, self._tick_clock)
+
+    def _due_hint(self, due: str) -> str:
+        parsed = parse_due_date(due)
+        if parsed is None:
+            return "Due date: invalid"
+        days = (parsed - date.today()).days
+        if days > 0:
+            return f"due {due} | {days} day(s) left"
+        if days == 0:
+            return f"due {due} | due today"
+        return f"due {due} | overdue {-days} day(s)"
 
     def reload_from_disk(self) -> None:
         self.store.load()
-        print(
-            f"[UI] loaded from disk: active={len(self.store.tasks)}, "
-            f"finished={len(self.store.finished)}, trash={len(self.store.trash)}"
-        )
         self.refresh_view()
-        self.status_var.set(
-            f"Reloaded: active {len(self.store.tasks)}, finished {len(self.store.finished)}, trash {len(self.store.trash)}"
-        )
 
     def refresh_view(self) -> None:
-        for item in self.store.tasks:
-            item["overDue"] = build_overdue_text(item["dueDate"])
+        for w in self.task_container.winfo_children():
+            w.destroy()
 
-        active_items = sorted(self.store.tasks, key=lambda x: x["dueDate"])
-        finished_items = sorted(self.store.finished, key=lambda x: x["dueDate"])
-        trash_items = sorted(self.store.trash, key=lambda x: x["dueDate"])
+        self.active_items = sorted(self.store.tasks, key=lambda x: x["dueDate"])
+        if not self.active_items:
+            tk.Label(
+                self.task_container,
+                text="(No tasks)",
+                bg="#f4f4f4",
+                fg="black",
+                font=("SimSun", 24, "bold"),
+                anchor="w",
+                padx=18,
+                pady=20,
+            ).pack(fill="x")
+        else:
+            for idx, item in enumerate(self.active_items):
+                self._build_task_row(idx, item)
 
-        active_rows = [f'ID {i["ID"]} | {i["task"]} | due {i["dueDate"]} | {i["overDue"]}' for i in active_items]
-        finished_rows = [f'ID {i["ID"]} | {i["task"]} | due {i["dueDate"]}' for i in finished_items]
-        trash_rows = [
-            f'ID {i["ID"]} | {i["task"]} | due {i["dueDate"]} | trash left {i.get("delete", "")}'
-            for i in trash_items
-        ]
-
-        self.active_ids = [int(i["ID"]) for i in active_items]
-        self.finished_ids = [int(i["ID"]) for i in finished_items]
-        self.trash_ids = [int(i["ID"]) for i in trash_items]
-
-        self._render_panel(self.active_list, active_rows)
-        self._render_panel(self.finished_list, finished_rows)
-        self._render_panel(self.trash_list, trash_rows)
         self.store.save()
 
-    def _ask_id(self, title: str) -> Optional[int]:
-        return simpledialog.askinteger(title, "Enter task ID:", parent=self, minvalue=0)
+    def _build_task_row(self, idx: int, item: dict) -> None:
+        selected = self.selected_task_id == int(item["ID"])
+        row_bg = "#eaf4ff" if selected else "#f4f4f4"
+        row = tk.Frame(self.task_container, bg=row_bg, height=84)
+        row.pack(fill="x")
+        row.pack_propagate(False)
 
-    def _selected_id(self, source: str) -> Optional[int]:
-        if source == "active":
-            box, ids = self.active_list, self.active_ids
-        elif source == "trash":
-            box, ids = self.trash_list, self.trash_ids
-        else:
-            return None
+        if idx > 0:
+            tk.Frame(row, bg="black", height=2).pack(fill="x", side="top")
 
-        selected = box.curselection()
-        if not selected:
-            return None
-        idx = selected[0]
-        if idx < 0 or idx >= len(ids):
-            return None
-        return ids[idx]
+        body = tk.Frame(row, bg=row_bg, padx=20, pady=12)
+        body.pack(fill="both", expand=True)
 
-    def _normalize_due_input(self, raw: str) -> Optional[str]:
-        text = raw.strip()
-        if not text:
-            return None
-
-        # Accept common variants like 2026-3-4 / 2026/3/4 / 2026.3.4 and normalize.
-        m = re.match(r"^(\d{4})\D(\d{1,2})\D(\d{1,2})$", text)
-        if m:
-            year, month, day = m.groups()
-            normalized = f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
-            return normalized if parse_due_date(normalized) is not None else None
-
-        # Accept compact numeric date like 20260304.
-        if re.match(r"^\d{8}$", text):
-            normalized = f"{text[0:4]}-{text[4:6]}-{text[6:8]}"
-            return normalized if parse_due_date(normalized) is not None else None
-
-        return None
-
-    def add_task(self) -> None:
-        task_text = self.task_entry.get().strip()
-        due_date = self._normalize_due_input(self.due_entry.get())
-        if not task_text:
-            messagebox.showerror("Invalid task", "Task text cannot be empty.")
-            return
-        if due_date is None:
-            messagebox.showerror("Invalid date", "Invalid date. Use a real date like 2026-03-04.")
-            return
-        self.due_entry.delete(0, tk.END)
-        self.due_entry.insert(0, due_date)
-        item = self.store.make_task(task_text, due_date)
-        self.store.tasks.append(item)
-        self.task_entry.delete(0, tk.END)
-        self.refresh_view()
-        self.status_var.set(f"Added task #{item['ID']}")
-
-    def edit_by_id(self) -> None:
-        task_id = self._selected_id("active")
-        if task_id is None:
-            task_id = self._ask_id("Edit task")
-        if task_id is None:
-            return
-        item = self.store.find_by_id(self.store.tasks, task_id)
-        if item is None:
-            messagebox.showerror("Not found", f"Active task ID {task_id} not found.")
-            return
-
-        opt = simpledialog.askstring(
-            "Edit task",
-            "What do you want to edit?\n1. Name\n2. Due date",
-            parent=self,
+        task_name = tk.Label(
+            body,
+            text=item["task"],
+            bg=row_bg,
+            fg="black",
+            font=("SimSun", 35 if len(item["task"]) <= 4 else 25, "bold"),
+            anchor="w",
         )
-        if opt is None:
-            return
-        opt = opt.strip()
+        task_name.pack(side="left", fill="x", expand=True)
+        due_hint = tk.Label(
+            body,
+            text=self._due_hint(item["dueDate"]),
+            bg=row_bg,
+            fg="black",
+            font=("Times New Roman", 15, "bold"),
+            anchor="e",
+        )
+        due_hint.pack(side="right", padx=(15, 10))
 
-        if opt == "1":
-            new_task = simpledialog.askstring("Edit task name", "Task text:", initialvalue=item["task"], parent=self)
-            if new_task is None:
-                return
-            new_task = new_task.strip()
-            if not new_task:
-                messagebox.showerror("Invalid task", "Task text cannot be empty.")
-                return
-            self.store.update_core_fields(item, new_task, item["dueDate"])
-            self.refresh_view()
-            self.status_var.set(f"Edited task name #{task_id}")
-            return
+        click_fn = lambda _e, task_id=int(item["ID"]): self.open_task_detail(task_id)
+        row.bind("<Button-1>", click_fn)
+        body.bind("<Button-1>", click_fn)
+        task_name.bind("<Button-1>", click_fn)
+        due_hint.bind("<Button-1>", click_fn)
 
-        if opt == "2":
-            new_due_raw = simpledialog.askstring(
-                "Edit due date",
-                "Due date (YYYY-MM-DD):",
-                initialvalue=item["dueDate"],
-                parent=self,
-            )
-            if new_due_raw is None:
-                return
-            new_due = self._normalize_due_input(new_due_raw)
-            if new_due is None:
-                messagebox.showerror("Invalid date", "Invalid date. Use a real date like 2026-03-04.")
-                return
-            self.store.update_core_fields(item, item["task"], new_due)
-            self.refresh_view()
-            self.status_var.set(f"Edited due date #{task_id}")
-            return
-
-        messagebox.showerror("Invalid option", "Please enter 1 (Name) or 2 (Due date).")
-
-    def finish_by_id(self) -> None:
-        task_id = self._selected_id("active")
-        if task_id is None:
-            task_id = self._ask_id("Finish task")
-        if task_id is None:
-            return
+    def open_task_detail(self, task_id: int) -> None:
         item = self.store.find_by_id(self.store.tasks, task_id)
         if item is None:
-            messagebox.showerror("Not found", f"Active task ID {task_id} not found.")
             return
-        self.store.tasks.remove(item)
-        item["finish"] = "[FINISHED]"
-        item["name"] = f"[FINISHED] Task: {item['task']}, Due date: {item['dueDate']}"
-        self.store.finished.append(item)
+        self.selected_task_id = task_id
         self.refresh_view()
-        self.status_var.set(f"Finished task #{task_id}")
 
-    def delete_by_id(self) -> None:
-        from datetime import date
+        win = tk.Toplevel(self)
+        win.title(f"Task Detail #{task_id}")
+        win.geometry("560x400")
+        win.configure(bg="#f4f4f4")
+        win.transient(self)
 
-        task_id = self._selected_id("active")
-        if task_id is None:
-            task_id = self._ask_id("Delete task")
-        if task_id is None:
-            return
-        item = self.store.find_by_id(self.store.tasks, task_id)
-        if item is None:
-            messagebox.showerror("Not found", f"Active task ID {task_id} not found.")
-            return
-        self.store.tasks.remove(item)
-        item["delete"] = 30
-        item["deleteDate"] = date.today().isoformat()
-        self.store.trash.append(item)
-        self.refresh_view()
-        self.status_var.set(f"Moved task #{task_id} to trash")
+        wrap = tk.Frame(win, bg="black")
+        wrap.place(relx=0.06, rely=0.08, relwidth=0.88, relheight=0.84)
+        body = tk.Frame(wrap, bg="#f4f4f4")
+        body.place(relx=0.004, rely=0.006, relwidth=0.992, relheight=0.988)
 
-    def restore_by_id(self) -> None:
-        task_id = self._selected_id("trash")
-        if task_id is None:
-            task_id = self._ask_id("Restore task")
-        if task_id is None:
-            return
-        item = self.store.find_by_id(self.store.trash, task_id)
-        if item is None:
-            messagebox.showerror("Not found", f"Trash task ID {task_id} not found.")
-            return
-        self.store.trash.remove(item)
-        item["delete"] = ""
-        item["deleteDate"] = ""
-        self.store.tasks.append(item)
-        self.refresh_view()
-        self.status_var.set(f"Restored task #{task_id}")
+        tk.Label(
+            body,
+            text=f"Due: {item['dueDate']}",
+            bg="#f4f4f4",
+            fg="black",
+            font=("Times New Roman", 24, "bold"),
+            anchor="w",
+        ).pack(fill="x", padx=18, pady=(16, 8))
+        tk.Label(
+            body,
+            text=self._due_hint(item["dueDate"]),
+            bg="#f4f4f4",
+            fg="black",
+            font=("SimSun", 18),
+            anchor="w",
+        ).pack(fill="x", padx=18, pady=(0, 14))
+
+        tk.Frame(body, bg="black", height=2).pack(fill="x")
+
+        tk.Button(
+            body,
+            text="Edit task",
+            bg="#f4f4f4",
+            fg="black",
+            activebackground="#ebebeb",
+            relief="flat",
+            font=("SimSun", 24, "bold"),
+            anchor="w",
+            command=lambda: self.open_edit_window(item, win),
+        ).pack(fill="x", padx=16, pady=(14, 14))
+
+        tk.Frame(body, bg="black", height=2).pack(fill="x")
+
+        tk.Button(
+            body,
+            text="Delete task (red)",
+            bg="#f4f4f4",
+            fg="#d93131",
+            activebackground="#ebebeb",
+            relief="flat",
+            font=("SimSun", 24, "bold"),
+            anchor="w",
+            command=lambda: self.delete_task(item["ID"], win),
+        ).pack(fill="x", padx=16, pady=(14, 8))
 
 
 if __name__ == "__main__":
