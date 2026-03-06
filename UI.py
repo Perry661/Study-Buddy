@@ -3,13 +3,14 @@ from datetime import date, datetime
 from typing import Optional
 
 from ADD import AddTaskMixin
+from backgroud import BackgroundMixin
 from DELETE import DeleteTaskMixin
 from FINISH import FinishTaskMixin
 from more import MoreMenuMixin
 from ui_data import TaskStore, parse_due_date
 
 
-class StudyBuddyUI(AddTaskMixin, DeleteTaskMixin, FinishTaskMixin, MoreMenuMixin, tk.Tk):
+class StudyBuddyUI(BackgroundMixin, AddTaskMixin, DeleteTaskMixin, FinishTaskMixin, MoreMenuMixin, tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("Study Buddy")
@@ -20,6 +21,7 @@ class StudyBuddyUI(AddTaskMixin, DeleteTaskMixin, FinishTaskMixin, MoreMenuMixin
         self.store = TaskStore()
         self.active_items: list[dict] = []
         self.selected_task_id: Optional[int] = None
+        self.init_background_state()
 
         self._build_ui()
         self.reload_from_disk()
@@ -35,12 +37,14 @@ class StudyBuddyUI(AddTaskMixin, DeleteTaskMixin, FinishTaskMixin, MoreMenuMixin
             self,
             text="",
             fg="black",
-            bg="#b9f0da",
+            bg="#f7f7f7",
             font=("Times New Roman", 24, "bold"),
             justify="left",
         )
-        self.time_label.place(relx=0.62, rely=0.06, anchor="nw")
-        self.more_btn = self._make_circle_button(self, "...", self.open_more_menu, size=78, text_size=26)
+        self.time_label.place(relx=0.82, rely=0.04, anchor="nw")
+        self.more_btn = self._make_circle_button(
+            self, "...", self.open_more_menu, size=78, text_size=26, canvas_bg="#f7f7f7"
+        )
         self.more_btn.place(relx=0.05, rely=0.07, anchor="center")
 
         self.list_border = tk.Frame(self, bg="black")
@@ -61,21 +65,31 @@ class StudyBuddyUI(AddTaskMixin, DeleteTaskMixin, FinishTaskMixin, MoreMenuMixin
         self.list_canvas.bind("<Configure>", self._on_list_canvas_configure)
         self.list_canvas.bind("<MouseWheel>", self._on_mousewheel)
 
-        self.bottom_bar = tk.Frame(self, bg="#b9f0da")
-        self.bottom_bar.place(relx=0.03, rely=0.74, relwidth=0.94, relheight=0.22)
+        self.bottom_bar = tk.Frame(self, bg="#f7f7f7")
+        self.bottom_bar.place(relx=0.03, rely=0.72, relwidth=0.92, relheight=0.20)
 
-        self.trash_btn = self._make_circle_button(self.bottom_bar, "BIN", self.open_trash_window)
-        self.add_btn = self._make_circle_button(self.bottom_bar, "+", self.open_add_window)
-        self.finish_btn = self._make_circle_button(self.bottom_bar, "DONE", self.finish_selected)
+        self.trash_btn = self._make_circle_button(
+            self.bottom_bar, "🗑️", self.open_trash_window, text_font=("Apple Color Emoji", 34)
+        )
+        self.add_btn = self._make_circle_button(
+            self.bottom_bar, "➕", self.open_add_window, text_font=("Apple Color Emoji", 34)
+        )
+        self.finish_btn = self._make_circle_button(
+            self.bottom_bar, "✅", self.finish_selected, text_font=("Apple Color Emoji", 34)
+        )
 
-        self.trash_btn.place(relx=0.12, rely=0.32, anchor="center")
-        self.add_btn.place(relx=0.50, rely=0.32, anchor="center")
-        self.finish_btn.place(relx=0.88, rely=0.32, anchor="center")
+        # Keep round buttons visually in place while lifting the square bar.
+        self.trash_btn.place(relx=0.12, rely=0.45, anchor="center")
+        self.add_btn.place(relx=0.50, rely=0.45, anchor="center")
+        self.finish_btn.place(relx=0.88, rely=0.45, anchor="center")
 
     def _draw_background(self) -> None:
         self.bg_canvas.delete("all")
-        w = max(self.winfo_width(), 980)
-        h = max(self.winfo_height(), 680)
+        w = max(self.winfo_width(), 838)
+        h = max(self.winfo_height(), 781)
+
+        if self._draw_background_image(w, h):
+            return
 
         self.bg_canvas.create_rectangle(0, 0, w, h, fill="#aeeacf", outline="")
 
@@ -180,11 +194,22 @@ class StudyBuddyUI(AddTaskMixin, DeleteTaskMixin, FinishTaskMixin, MoreMenuMixin
     def _on_mousewheel(self, event: tk.Event) -> None:
         self.list_canvas.yview_scroll(int(-event.delta / 120), "units")
 
-    def _make_circle_button(self, parent: tk.Widget, text: str, command, size: int = 120, text_size: int = 34) -> tk.Canvas:
-        c = tk.Canvas(parent, width=size, height=size, highlightthickness=0, bd=0, bg="#b9f0da")
+    def _make_circle_button(
+        self,
+        parent: tk.Widget,
+        text: str,
+        command,
+        size: int = 120,
+        text_size: int = 34,
+        text_font: Optional[tuple[str, int] | tuple[str, int, str]] = None,
+        canvas_bg: Optional[str] = None,
+    ) -> tk.Canvas:
+        parent_bg = str(parent.cget("bg")) if "bg" in parent.keys() else "#f7f7f7"
+        c = tk.Canvas(parent, width=size, height=size, highlightthickness=0, bd=0, bg=canvas_bg or parent_bg)
         margin = max(6, int(size * 0.07))
         c.create_oval(margin, margin, size - margin, size - margin, width=3, outline="black", fill="#f8f8f8")
-        c.create_text(size / 2, size / 2, text=text, fill="black", font=("Times New Roman", text_size, "bold"))
+        font_spec = text_font if text_font is not None else ("Times New Roman", text_size, "bold")
+        c.create_text(size / 2, size / 2, text=text, fill="black", font=font_spec)
         c.bind("<Button-1>", lambda _e: command())
         return c
 

@@ -8,10 +8,13 @@ class FinishTaskMixin:
         if self.selected_task_id is None:
             messagebox.showinfo("Info", "Please click a task first.")
             return
+
         item = self.store.find_by_id(self.store.tasks, self.selected_task_id)
         if item is None:
             messagebox.showerror("Error", "Selected task not found.")
             return
+
+        # Legacy finish behavior: remove from active and append to finished list.
         self.store.tasks.remove(item)
         item["finish"] = "[FINISHED]"
         item["name"] = f"[FINISHED] Task: {item['task']}, Due date: {item['dueDate']}"

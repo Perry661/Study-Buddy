@@ -53,6 +53,8 @@ class AddTaskMixin:
             if due_date is None:
                 messagebox.showerror("Error", "Invalid date. Use YYYY-MM-DD.", parent=win)
                 return
+
+            # Keep legacy ID behavior: use max ID across active + trash + finished.
             self.store.tasks.append(self.store.make_task(task_text, due_date))
             self.selected_task_id = None
             self.refresh_view()

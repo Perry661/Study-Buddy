@@ -5,6 +5,8 @@ class MoreMenuMixin:
     def open_more_menu(self) -> None:
         menu = tk.Menu(self, tearoff=0)
         menu.add_command(label="View finished tasks", command=self.open_finished_window)
+        menu.add_command(label="View trash", command=self.open_trash_window)
+        menu.add_command(label="Change backgroud", command=self.change_background)
         menu.add_separator()
         menu.add_command(label="More features coming soon", state="disabled")
         x = self.winfo_pointerx()

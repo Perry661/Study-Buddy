@@ -12,17 +12,22 @@ class DeleteTaskMixin:
             return
         if not messagebox.askyesno("Confirm Delete", f"Delete task '{item['task']}'?", parent=self):
             return
+
+        # Legacy behavior: move into trash with a 30-day countdown.
         self.store.tasks.remove(item)
         item["delete"] = 30
         item["deleteDate"] = date.today().isoformat()
         self.store.trash.append(item)
         self.selected_task_id = None
         self.refresh_view()
+
         if detail_window is not None:
             detail_window.destroy()
 
     def open_trash_window(self) -> None:
         self.store.apply_trash_countdown()
+        self.refresh_view()
+
         win = tk.Toplevel(self)
         win.title("Trash")
         win.geometry("760x420")
@@ -61,6 +66,7 @@ class DeleteTaskMixin:
             item["delete"] = ""
             item["deleteDate"] = ""
             self.store.tasks.append(item)
+            self.selected_task_id = int(item["ID"])
             self.refresh_view()
             win.destroy()
 
