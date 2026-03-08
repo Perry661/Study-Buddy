@@ -21,6 +21,7 @@ class StudyBuddyUI(BackgroundMixin, AddTaskMixin, DeleteTaskMixin, FinishTaskMix
         self.store = TaskStore()
         self.active_items: list[dict] = []
         self.selected_task_id: Optional[int] = None
+        self._single_click_after_id: Optional[str] = None
         self.init_background_state()
 
         self._build_ui()
@@ -287,18 +288,51 @@ class StudyBuddyUI(BackgroundMixin, AddTaskMixin, DeleteTaskMixin, FinishTaskMix
         )
         due_hint.pack(side="right", padx=(15, 10))
 
-        click_fn = lambda _e, task_id=int(item["ID"]): self.open_task_detail(task_id)
-        row.bind("<Button-1>", click_fn)
-        body.bind("<Button-1>", click_fn)
-        task_name.bind("<Button-1>", click_fn)
-        due_hint.bind("<Button-1>", click_fn)
+        task_id = int(item["ID"])
+        widgets = (row, body, task_name, due_hint)
+        for widget in widgets:
+            widget.bind("<Button-1>", lambda _e, tid=task_id: self._on_task_single_click(tid))
+            widget.bind("<Button-2>", lambda _e, tid=task_id: self._on_task_two_finger_click(tid))
+            widget.bind("<Button-3>", lambda _e, tid=task_id: self._on_task_two_finger_click(tid))
+            
+            # Old behavior kept for reference: quick double-click to open detail.
+            # widget.bind("<Double-Button-1>", lambda _e, tid=task_id: self._on_task_double_click(tid))
+            # widget.bind("<Double-Button-2>", lambda _e, tid=task_id: self._on_task_double_click(tid))
+            # widget.bind("<Double-Button-3>", lambda _e, tid=task_id: self._on_task_double_click(tid))
 
-    def open_task_detail(self, task_id: int) -> None:
+    def _on_task_single_click(self, task_id: int) -> None:
+        # Delay single-click action so it can be canceled by a double-click.
+        if self._single_click_after_id is not None:
+            self.after_cancel(self._single_click_after_id)
+        self._single_click_after_id = self.after(220, lambda: self.select_task(task_id))
+
+    def _on_task_double_click(self, task_id: int) -> None:
+        if self._single_click_after_id is not None:
+            self.after_cancel(self._single_click_after_id)
+            self._single_click_after_id = None
+        self.open_task_detail(task_id, select=False)
+
+    def _on_task_two_finger_click(self, task_id: int) -> None:
+        if self._single_click_after_id is not None:
+            self.after_cancel(self._single_click_after_id)
+            self._single_click_after_id = None
+        self.open_task_detail(task_id, select=False)
+
+    def select_task(self, task_id: int) -> None:
         item = self.store.find_by_id(self.store.tasks, task_id)
         if item is None:
             return
+        self._single_click_after_id = None
         self.selected_task_id = task_id
         self.refresh_view()
+
+    def open_task_detail(self, task_id: int, select: bool = True) -> None:
+        item = self.store.find_by_id(self.store.tasks, task_id)
+        if item is None:
+            return
+        if select:
+            self.selected_task_id = task_id
+            self.refresh_view()
 
         win = tk.Toplevel(self)
         win.title(f"Task Detail #{task_id}")
